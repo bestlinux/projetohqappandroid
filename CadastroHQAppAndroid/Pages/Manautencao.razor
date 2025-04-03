@@ -1,0 +1,153 @@
+﻿@page "/add_aluno"
+@page "/update_aluno/{AlunoId:int}"
+@inject IAlunoService alunoService
+@inject NavigationManager navigation
+
+<h3>Manutenção</h3>
+
+<div class="form-group">
+    <label>Nome</label>
+    <input @bind="Nome" class="form-control" placeholder="Nome">
+</div>
+
+<div class="mt-2 form-group">
+    <label>Endereço</label>
+    <input @bind="Endereco" class="form-control" placeholder="Endereco">
+</div>
+
+<div class="mt-2 form-group">
+    <label>Email</label>
+    <input @bind="Email" type="email" class="form-control" placeholder="Email">
+</div>
+
+<div class="mt-2 form-group">
+    <label>Gênero</label>
+    <div class=" d-flex flex-row">
+        <div class="col-6 d-flex justify-content-between">
+            <div class="form-check">
+                <input checked="@(Genero=="Masculino")" @onchange="@(()=> SetGenero("Masculino"))" class="form-check-input" type="radio" name="flexRadioDefault">
+                <label class="form-check-label" for="flexRadioDefault1">
+                    Masculino
+                </label>
+            </div>
+            <div class="form-check">
+                <input checked="@(Genero=="Feminino")" @onchange="@(()=> SetGenero("Feminino"))" class="form-check-input" type="radio" name="flexRadioDefault">
+                <label class="form-check-label" for="flexRadioDefault2">
+                    Feminino
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+
+ <button type="submit" @onclick="Manutencao" class="mt-2 btn btn-primary">Enviar</button>
+ <button type="submit" @onclick="Retornar" class="mt-2 btn btn-dark">Retornar</button>
+
+@code {
+
+    private Aluno alunoModel = new();
+
+    [Parameter]
+    public int AlunoId { get; set; }
+
+    private string Nome;
+    private string Endereco;
+    private string Email;
+    private string Genero;
+
+    private void SetGenero(string genero)
+    {
+        this.Genero = genero;
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        if (AlunoId > 0)
+        {
+            await alunoService.InitializeAsync();
+            var response = await alunoService.GetAlunoById(AlunoId);
+            if (response != null)
+            {
+                Nome = response.Nome;
+                Endereco = response.Endereco;
+                Email = response.Email;
+                Genero = response.Genero;
+            }
+        }
+    }
+
+    private async Task Manutencao()
+    {
+        if (await Valida())
+        {
+            var aluno = new Aluno
+                {
+                    Nome = Nome,
+                    Endereco = Endereco,
+                    Email = Email,
+                    Genero = Genero,
+                    AlunoId = AlunoId
+                };
+
+            int response = -1;
+            if (AlunoId > 0)
+            {
+                response = await alunoService.UpdateAluno(aluno);
+            }
+            else
+            {
+                response = await alunoService.AddAluno(aluno);
+            }
+
+            if (response > 0)
+            {
+                Nome = Endereco = Genero = Email = string.Empty;
+                this.StateHasChanged();
+                await App.Current.MainPage.DisplayAlert("Incluir Aluno",
+                "Aluno salvo com sucesso", "OK");
+            }
+            else
+            {
+                await App.Current.MainPage.DisplayAlert("Opa!!!",
+               "Algo deu errado ao incluir o aluno", "OK");
+            }
+        }
+    }
+
+    private void Retornar()
+    {
+        navigation.NavigateTo($"/");
+    }
+
+    public async Task<bool> Valida()
+    {
+        if (string.IsNullOrEmpty(Nome))
+        {
+            await App.Current.MainPage.DisplayAlert("Opa!!!",
+            "O nome é obrigatório", "OK");
+            return false;
+        }
+
+        if (string.IsNullOrEmpty(Email))
+        {
+            await App.Current.MainPage.DisplayAlert("Opa!!!",
+            "O email é obrigatório", "OK");
+            return false;
+        }
+
+        if (string.IsNullOrEmpty(Endereco))
+        {
+            await App.Current.MainPage.DisplayAlert("Opa!!!",
+            "O endereço é obrigatório", "OK");
+            return false;
+        }
+
+        if (string.IsNullOrEmpty(Genero))
+        {
+            await App.Current.MainPage.DisplayAlert("Opa!!!",
+            "O gênero é obrigatório", "OK");
+            return false;
+        }
+        return true;
+    }
+}

@@ -1,0 +1,45 @@
+﻿@page "/hqs"
+
+@inject IHQService hqService
+@inject NavigationManager navigation
+
+<h1>HQs</h1>
+
+@if (hqs == null)
+{
+    <p><em>Carregando...</em></p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Titulo</th>
+                    <th>Editora</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var hq in hqs)
+                {
+                    <tr>
+                        <td>@hq.Titulo</td>
+                        <td>@hq.Editora</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+}
+
+@code {
+    private List<HQ> hqs;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await hqService.InitializeAsync();
+        hqs = await hqService.GetHQS();
+    }
+
+}

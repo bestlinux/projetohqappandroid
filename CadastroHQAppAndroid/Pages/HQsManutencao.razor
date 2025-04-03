@@ -1,0 +1,129 @@
+﻿@page "/add_hq"
+@page "/update_hq/{HqId:int}"
+@inject IHQService hqService
+@inject NavigationManager navigation
+@using ZXing.Net.Maui;
+
+<h3>Manutenção</h3>
+
+<div class="form-group">
+    <label>Titulo</label>
+    <input @bind="Titulo" class="form-control" placeholder="Titulo">
+</div>
+
+<div class="mt-2 form-group">
+    <label>Editora</label>
+    <input @bind="Editora" class="form-control" placeholder="Editora">
+</div>
+
+<button type="submit" @onclick="Manutencao" class="mt-2 btn btn-primary">Enviar</button>
+<button type="submit" @onclick="Retornar" class="mt-2 btn btn-dark">Retornar</button>
+<button @onclick="DoScanAsync">Scan</button>
+
+Scan Result: @scanResultLabel
+
+
+@code {
+
+    private HQ hqModel = new();
+
+    [Parameter]
+    public int HQId { get; set; }
+
+    private string Titulo;
+    private string Editora;
+
+    private string scanResultLabel;
+
+    public async Task DoScanAsync()
+    {
+        var scanResults = await GetScanResultsAsync();
+        var barcode = scanResults.FirstOrDefault();
+        if (barcode != null)
+            scanResultLabel = $"Barcodes: {barcode.Format} -> {barcode.Value}";
+    }
+
+    public async Task<BarcodeResult[]> GetScanResultsAsync()
+    {
+        var cameraPage = new CameraPage();
+        await Application.Current.MainPage.Navigation.PushModalAsync(cameraPage);
+
+        return await cameraPage.WaitForResultAsync();
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        if (HQId > 0)
+        {
+            await hqService.InitializeAsync();
+            var response = await hqService.GetHQById(HQId);
+            if (response != null)
+            {
+                Titulo = response.Titulo;
+                Editora = response.Editora;
+            }
+        }
+    }
+
+    private async Task Manutencao()
+    {
+        if (await Valida())
+        {
+            var hq = new HQ
+                {
+                    Titulo = Titulo,
+                    Editora = Editora,
+                    Lido = 1
+                };
+
+            int response = -1;
+
+            if (HQId > 0)
+            {
+                response = await hqService.UpdateHQ(hq);
+            }
+            else
+            {
+                response = await hqService.AddHQ(hq);
+            }
+
+            if (response > 0)
+            {
+                Titulo = Editora = string.Empty;
+                this.StateHasChanged();
+                await App.Current.MainPage.DisplayAlert("Incluir HQ",
+                "HQ salva com sucesso", "OK");
+            }
+            else
+            {
+                await App.Current.MainPage.DisplayAlert("Opa!!!",
+               "Algo deu errado ao incluir a hq", "OK");
+            }
+        }
+    }
+
+    public async Task<bool> Valida()
+    {
+        if (string.IsNullOrEmpty(Titulo))
+        {
+            await App.Current.MainPage.DisplayAlert("Opa!!!",
+            "O Titulo é obrigatório", "OK");
+            return false;
+        }
+
+        if (string.IsNullOrEmpty(Editora))
+        {
+            await App.Current.MainPage.DisplayAlert("Opa!!!",
+            "A Editora é obrigatório", "OK");
+            return false;
+        }
+       
+        return true;
+    }
+
+    private void Retornar()
+    {
+        navigation.NavigateTo($"/hqs");
+    }
+
+}

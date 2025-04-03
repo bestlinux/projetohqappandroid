@@ -1,0 +1,61 @@
+﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">CadastroHQAppAndroid</a>
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</div>
+
+<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+    <ul class="nav flex-column">
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                    <span class="oi oi-home" aria-hidden="true"></span> Home
+                </NavLink>
+            </li>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="alunos">
+                    <span class="oi oi-list" aria-hidden="true"></span> Alunos
+                </NavLink>
+            </li>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="add_aluno">
+                    <span class="oi oi-dashboard" aria-hidden="true"></span> Manutenção
+                </NavLink>
+             </li>
+            <li class="nav-item px-3">
+            <NavLink class="nav-link" href="hqs" @onclick="()=> expandirSubMenu =! expandirSubMenu">
+                <span class="oi oi-list" aria-hidden="true"></span> HQs
+            </NavLink>
+            @if (expandirSubMenu)
+            {
+                <ul class="nav flex-column">
+                    <li class="nav-item px-3">
+                        <NavLink class="expand-menu" href="add_hq">
+                            <span class="oi oi-dashboard" aria-hidden="true"></span> Manutenção
+                        </NavLink>
+                    </li>
+@*                     <li class="nav-item px-3">
+                        <NavLink class="expand-menu" href="">
+                            <span class="oi oi-terminal" aria-hidden="true"></span> Relatório
+                        </NavLink>
+                    </li> *@
+                </ul>
+            }
+            </li>
+    </ul>
+</div>
+
+@code {
+
+    private bool expandirSubMenu;
+    private bool collapseNavMenu = true;
+
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}

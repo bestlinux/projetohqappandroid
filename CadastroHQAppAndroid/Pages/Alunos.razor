@@ -1,0 +1,69 @@
+﻿@page "/alunos"
+
+@inject IAlunoService alunoService
+@inject NavigationManager navigation
+
+<h1>Alunos</h1>
+
+@if (alunos == null)
+{
+    <p><em>Carregando...</em></p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>Gênero</th>
+                    <th>Endereco</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var aluno in alunos)
+                {
+                    <tr>
+                        <td>@aluno.Nome</td>
+                        <td>@aluno.Email</td>
+                        <td>@aluno.Genero</td>
+                        <td>@aluno.Endereco</td>
+                        <td>
+                            <button type="submit" @onclick="@(()=> EditaAluno(aluno.AlunoId))" class="btn btn-success">Edita</button>
+                        </td>
+                        <td>
+                            <button type="submit" @onclick="@(()=> DeletaAluno(aluno))" class="btn btn-danger">Deleta</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+}
+
+@code {
+    private List<Aluno> alunos;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await alunoService.InitializeAsync();
+        alunos = await alunoService.GetAlunos();
+    }
+
+    private void EditaAluno(int alunoId)
+    {
+        navigation.NavigateTo($"update_aluno/{alunoId}");
+    }
+
+    private async void DeletaAluno(Aluno aluno)
+    {
+        var response = await alunoService.DeleteAluno(aluno);
+        if (response > 0)
+        {
+            await OnInitializedAsync();
+            this.StateHasChanged();
+        }
+    }
+}
